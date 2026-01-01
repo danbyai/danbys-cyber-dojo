@@ -10,6 +10,19 @@ An interactive learning environment for offensive and defensive cybersecurity sk
 
 ---
 
+## 🚀 Current Status
+
+**✅ Available Now:**
+- Dojo Controller (Master launcher with ASCII interface)
+
+**🔄 In Development:**
+- Diff Report Professor (nginx hardening analysis)
+- HTML Professor (web security mentor)
+- Red Team Agent (attack methodology)
+- Blue Team Agent (defense planning)
+
+All agents undergo rigorous testing with full session logging before release.
+
 ## 🎯 Overview
 
 **Danby's Cyber Dojo** is a professional security training environment built around AI-powered coaching agents. Each agent specializes in different aspects of cybersecurity, from offensive red team methodologies to defensive blue team incident response.
