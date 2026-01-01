@@ -1,0 +1,102 @@
+# ============================================
+# DANBY'S CYBER DOJO - SECURITY GITIGNORE
+# NO SECRETS, NO LOGS, NO SENSITIVE DATA
+# ============================================
+
+# === PYTHON ===
+venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.installed.cfg
+*.egg
+*.egg-info/
+dist/
+build/
+
+# === SECRETS & CREDENTIALS ===
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+config.json
+secrets.json
+credentials.json
+auth.json
+token
+*.token
+anthropic_api_key.txt
+api_keys.txt
+passwords.txt
+secrets/
+credentials/
+
+# === LOGS ===
+logs/
+*.log
+log/
+*.log.*
+session_*.log
+
+# === CAPTURES & BASELINES ===
+captures/
+baselines/
+screenshots/
+notes/
+daily_diff/*.txt
+daily_diff/*.html
+
+# === LAB DATA ===
+*.pcap
+*.pcapng
+tcpdump_*.txt
+nmap_*.txt
+nikto_*.txt
+curl_*.txt
+
+# === BACKUP FILES ===
+*.bak
+*.backup
+*.old
+*.orig
+*~
+*.swp
+*.swo
+
+# === OS FILES ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDE FILES ===
+.vscode/
+.idea/
+
+# === DATABASE FILES ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === COMPRESSED FILES ===
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# === TEMPORARY FILES ===
+tmp/
+temp/
+*.tmp
+*.cache
+
+# ============================================
+# END OF SECURITY GITIGNORE
+# ============================================
