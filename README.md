@@ -13,7 +13,9 @@ An interactive learning environment for offensive and defensive cybersecurity sk
 ## 🚀 Current Status
 
 **✅ Available Now:**
-- Dojo Controller (Master launcher with ASCII interface)
+- Public Scripts (Foundation Layer) Configuration-driven capture & logging scripts powering future agents
+- baseline_capture.sh, dojo_config.sh, setup_dojo.sh, dojo_controller.py
+- Setup guide in docs/SETUP.md
 
 **🔄 In Development:**
 - Diff Report Professor (nginx hardening analysis)
@@ -30,6 +32,18 @@ All agents undergo rigorous testing with full session logging before release.
 **Built in:** Brisbane, Australia 🇦🇺  
 **Environment:** Kali Purple + Ubuntu Server (isolated lab)  
 **Purpose:** Real-world security operations training + certification prep
+
+## 🧩 Configuration-Driven Design
+
+Danby’s Cyber Dojo uses a single configuration file to control:
+- Target IPs / hosts
+- Log directories
+- Capture output paths
+- SSH settings
+
+No hardcoded values exist in the public scripts.
+
+👉 See `docs/SETUP.md` for installation and configuration instructions.
 
 ---
 
@@ -82,7 +96,7 @@ Defensive security and incident response mentor.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start for dojo_controller.py test deploy
 
 ### Prerequisites
 
@@ -103,7 +117,7 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set your API key
+# Set your API key  # NO NEED TO DO THIS PART UNTIL AGENTS ARE RELEASED #
 export ANTHROPIC_API_KEY='your-api-key-here'
 
 # Launch the Dojo
@@ -219,7 +233,7 @@ See `requirements.txt` for complete dependencies.
 
 ## 📖 Documentation
 
-- [Setup Guide](docs/setup.md) *(coming soon)*
+- [Setup Guide](docs/SETUP.md)
 - [Usage Examples](docs/usage.md) *(coming soon)*
 - [Architecture Overview](docs/architecture.md) *(coming soon)*
 
