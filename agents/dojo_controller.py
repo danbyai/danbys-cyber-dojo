@@ -18,22 +18,36 @@ import os
 import sys
 import subprocess
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from dojo_config_loader import DojoConfig
+except ImportError:
+    print("❌ Missing dojo_config_loader.py")
+    print("   Ensure it's in ~/test_labs/danbys-cyber-dojo/")
+    sys.exit(1)
 from datetime import datetime
 
 
 class DojoController:
     """Master controller for Danby's Cyber Dojo"""
 
-    LOGS_DIR = Path.home() / "test_labs" / "logs" / "dojo_controller"
-    AGENTS_DIR = Path.home() / "test_labs" / "agents"
-
     def __init__(self):
+        # Load config
+        self.config = DojoConfig()
+        
+        # Config-driven setup
+        self.LOGS_DIR = self.config.get_log_dir('dojo_controller')
+        self.AGENTS_DIR = self.config.get_agents_dir()
+        
         self._ensure_directories()
         
         # Session logging
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ts_format = self.config.get_log_timestamp_format()
+        ts = datetime.now().strftime(ts_format)
         self.session_log_path = self.LOGS_DIR / f"dojo_session_{ts}.log"
         self._log(f"[START] Dojo Controller session started @ {datetime.now().isoformat()}")
+        self._log(f"[CONFIG] Loaded from: {self.config.DEFAULT_CONFIG_PATH}")
         self._log(f"[LOGFILE] {self.session_log_path}")
 
     def _ensure_directories(self):

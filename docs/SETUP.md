@@ -1,25 +1,19 @@
-# 🛠️ Setup Guide — Danby’s Cyber Dojo
+# 🛠️ Setup Guide – Danby's Cyber Dojo
 
-This guide explains how to install and run the **public Cyber Dojo scripts**.
+This guide explains how to install and configure **Danby's Cyber Dojo** for Purple Team training.
 
-These scripts form the **foundation** of future AI agents by capturing, logging, and diffing security state in a clean, reproducible way.
-
-No hardcoded IPs.
-No personal paths.
-No secrets committed.
+**Phase 2.3** includes HTTP/HTTPS dual-protocol testing, TLS/SSL validation, and security header analysis.
 
 ---
 
 ## 📦 Requirements
 
 ### Supported Systems
-
-* Linux (tested on **Kali Linux** and **Ubuntu Server**)
-* Bash shell
-* sudo access (for scans)
+- **Linux** (tested on Kali Purple, Ubuntu Server)
+- Bash shell
+- sudo access (for nmap scans)
 
 ### Required Packages
-
 ```bash
 sudo apt update
 sudo apt install -y \
@@ -27,10 +21,16 @@ sudo apt install -y \
   curl \
   openssl \
   nmap \
-  nikto
+  nikto \
+  netcat
 ```
 
-> `nmap` and `nikto` are only required for baseline capture and diffing.
+**Package purposes:**
+- `curl` - HTTP/HTTPS header analysis
+- `openssl` - TLS/SSL certificate inspection
+- `nmap` - Service detection, TLS cipher enumeration
+- `nikto` - Web vulnerability scanning
+- `netcat` - Banner grabbing
 
 ---
 
@@ -45,152 +45,350 @@ cd danbys-cyber-dojo
 
 ## ⚙️ One-Step Setup (Recommended)
 
-Run the setup script from the repo root:
+Run the interactive setup wizard:
 
 ```bash
-bash setup_dojo.sh
+chmod +x setup_dojo.sh
+./setup_dojo.sh
 ```
 
-This script will:
+**The wizard will ask:**
+1. Target host IP (e.g., `10.0.10.20`)
+2. Target username (e.g., `ubuntu`)
+3. SSH port (default: `22`)
+4. Local dojo home folder (default: `$HOME/cyber_dojo`)
+5. SSH key path (default: `$HOME/.ssh/dojo_admin`)
+6. HTTP port (default: `80`)
+7. HTTPS port (default: `443`)
 
-* Generate a local configuration file
-* Ask for your target host and SSH user
-* Create required directories
-* Prepare the environment for captures
-
-Nothing is committed to Git.
+**Output:**
+- `~/.dojo_config.sh` - Your personalized configuration
+- Directory structure under `~/cyber_dojo/`
 
 ---
 
-## 🧩 Configuration (Auto-Generated)
+## 🔧 Manual Configuration (Advanced)
 
-The setup script creates:
-
-```
-.dojo_config.sh
-```
-
-This file controls:
-
-* Target host / IP
-* SSH user
-* Log directories
-* Capture output paths
-
-Example contents:
+If you prefer manual setup:
 
 ```bash
-TARGET_HOST="10.0.0.10"
-SSH_USER="danby"
-LOG_ROOT="$HOME/cyber_dojo/logs"
-CAPTURE_ROOT="$HOME/cyber_dojo/captures"
+# Copy template
+cp dojo_config.sh ~/.dojo_config.sh
+
+# Edit configuration
+nano ~/.dojo_config.sh
+
+# Update these values:
+# export DOJO_TARGET_HOST="10.0.10.20"
+# export DOJO_TARGET_USER="ubuntu"
+# export DOJO_HTTP_PORT="80"
+# export DOJO_HTTPS_PORT="443"
+
+# Create directories
+mkdir -p ~/cyber_dojo/{scripts,baselines,captures,logs,daily_diff,sessions}
+
+# Load configuration
+source ~/.dojo_config.sh
 ```
 
-⚠️ **Never commit this file**
-It is already protected by `.gitignore`.
+---
 
-To load it manually later:
+## 🧪 Test Your Configuration
+
+### 1. Load Configuration
+```bash
+source ~/.dojo_config.sh
+```
+
+### 2. Test SSH Connection
+```bash
+ssh $DOJO_TARGET_USER@$DOJO_TARGET_HOST
+```
+
+If using SSH keys:
+```bash
+ssh -i $DOJO_KEY_ADMIN $DOJO_TARGET_USER@$DOJO_TARGET_HOST
+```
+
+### 3. Verify Environment Variables
+```bash
+echo "Target: $DOJO_TARGET_HOST"
+echo "User: $DOJO_TARGET_USER"
+echo "HTTP: $DOJO_HTTP_PORT"
+echo "HTTPS: $DOJO_HTTPS_PORT"
+echo "Dojo Home: $DOJO_HOME"
+```
+
+---
+
+## 📸 Baseline Capture (Phase 2.3)
+
+### Running Your First Scan
 
 ```bash
-source .dojo_config.sh
+# Make script executable
+chmod +x baseline_capture.sh
+
+# Run baseline capture (before hardening)
+./baseline_capture.sh baseline
+```
+
+**This executes 16 scans:**
+
+**Part 1 - HTTP (Port 80):**
+1. Banner grab (netcat)
+2. HTTP headers (curl)
+3. Full response with HTML
+4. 404 error page test
+5. HTTP methods (OPTIONS)
+
+**Part 2 - HTTPS/TLS (Port 443):**
+6. HTTPS headers
+7. HTTPS HTML body (CSS detection)
+8. HTTP → HTTPS redirect validation
+9. HSTS header check
+10. HTTP/2 protocol validation
+11. SSL certificate details
+
+**Part 3 - Vulnerability Scans:**
+12. Nikto HTTP scan
+13. Nikto HTTPS scan
+
+**Part 4 - Privileged Scans (sudo required):**
+14. Nmap HTTP service detection
+15. Nmap HTTPS service detection
+16. TLS cipher enumeration
+
+### Evidence Storage
+
+**Working Directory:**
+- `baseline_*.txt` - Current scan results
+
+**Archived Evidence:**
+- `~/cyber_dojo/baselines/nginx/baseline_*_TIMESTAMP.txt`
+
+**Categorized Captures:**
+- `~/cyber_dojo/captures/curl/` - HTTP requests
+- `~/cyber_dojo/captures/tls/` - HTTPS/SSL data
+- `~/cyber_dojo/captures/nmap/` - Service scans
+
+---
+
+## 🔒 Phase 2.3 Workflow
+
+### Complete Purple Team Cycle
+
+**1. Capture BEFORE State:**
+```bash
+./baseline_capture.sh baseline
+```
+
+**2. Harden Target Server:**
+```bash
+# On target Ubuntu server:
+sudo ./ubuntu_https_server_setup.sh
+# (This script available in scripts/ directory)
+```
+
+**What hardening does:**
+- Installs nginx with HTTPS
+- Generates self-signed SSL certificate
+- Configures HTTP → HTTPS redirect
+- Adds security headers (HSTS, CSP, X-Frame-Options, etc)
+- Separates inline CSS to external file
+- Configures UFW firewall
+
+**3. Capture AFTER State:**
+```bash
+./baseline_capture.sh hardened
+```
+
+**4. Compare Evidence:**
+```bash
+# Compare baseline vs hardened scans
+diff baseline_nikto_https.txt hardened_nikto_https.txt
+diff baseline_https_headers.txt hardened_https_headers.txt
 ```
 
 ---
 
-## 📁 Runtime Directories (Auto-Created)
+## 📊 Reading Scan Results
 
-You do **not** need to create these yourself.
-
+### HTTP Headers (baseline_headers.txt)
 ```
-~/cyber_dojo/
-├── logs/
-│   ├── baseline/
-│   └── diff/
-└── captures/
+HTTP/1.1 200 OK
+Server: nginx/1.18.0
+Content-Type: text/html
 ```
+**Look for:** Server version, content type, missing security headers
 
-All paths are controlled by `.dojo_config.sh`.
+### HTTPS Headers (baseline_https_headers.txt)
+```
+HTTP/2 200
+strict-transport-security: max-age=31536000; includeSubDomains
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+```
+**Look for:** HSTS, security headers, HTTP/2 support
+
+### HSTS Header (baseline_hsts_header.txt)
+```
+strict-transport-security: max-age=31536000; includeSubDomains
+```
+**Absence = "HSTS not found"** - Server not enforcing HTTPS
+
+### Nikto Results (baseline_nikto_https.txt)
+```
++ Server: nginx/1.18.0 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-Content-Type-Options header is not set.
+```
+**Compare BEFORE vs AFTER** to validate hardening improvements
 
 ---
 
-## 🧪 Baseline Capture
+## 🔐 Security Best Practices
 
-Run the baseline capture script:
+### SSH Key Setup (Recommended)
 
 ```bash
-bash scripts/baseline_capture_public.sh
+# Generate admin key
+ssh-keygen -t ed25519 -f ~/.ssh/dojo_admin -C "dojo-admin"
+
+# Copy to target
+ssh-copy-id -i ~/.ssh/dojo_admin.pub ubuntu@10.0.10.20
+
+# Test connection
+ssh -i ~/.ssh/dojo_admin ubuntu@10.0.10.20
 ```
 
-This will:
+### Firewall Configuration
 
-* Validate config
-* Check connectivity
-* Capture headers and services
-* Store results in `captures/`
-
-This data becomes the **ground truth** for future comparisons and agents.
-
----
-
-## 📊 Diffing (When Available)
-
-Diff scripts will compare:
-
-* Before vs after hardening
-* Header changes
-* Service exposure changes
-
-These are currently being finalized and released incrementally.
+**On target Ubuntu server:**
+```bash
+sudo ufw allow 22/tcp    # SSH
+sudo ufw allow 80/tcp    # HTTP
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw enable
+```
 
 ---
 
-## 🔐 Security Notes
+## 🛡️ Privacy & Security
 
-* ❌ Never commit `.dojo_config.sh`
-* ❌ Never commit logs or captures
-* ✅ `.gitignore` blocks sensitive output
-* ✅ Only test systems you own or are authorized to test
+**This repository contains NO sensitive data:**
+- ❌ No API keys or tokens
+- ❌ No session logs or chat histories
+- ❌ No network captures with real IPs
+- ❌ No credentials or secrets
+- ✅ All sensitive paths excluded via `.gitignore`
+
+**Configuration file `~/.dojo_config.sh` is NEVER committed to Git.**
 
 ---
 
 ## ⚠️ Legal Disclaimer
 
-This framework is for **authorized testing only**.
+**For authorized testing ONLY.**
 
-Do not run scans or attacks against systems you do not own or have permission to test.
-
----
-
-## 🧠 Philosophy
-
-> Capture first.
-> Understand second.
-> Automate third.
-> Teach last.
-
-These scripts are the **heart** of the Cyber Dojo agents to come.
+- Only test systems you own or have explicit permission to test
+- Never run scans against production systems without authorization
+- Nikto and nmap can be intrusive - use responsibly
+- Lab environment recommended (Kali + Ubuntu VM)
 
 ---
 
 ## 🆘 Troubleshooting
 
-**Permission denied?**
-
+### "Configuration not found"
 ```bash
-chmod +x setup_dojo.sh scripts/*.sh
+# Check if config exists
+ls -la ~/.dojo_config.sh
+
+# If missing, run setup again
+./setup_dojo.sh
 ```
 
-**Config not loading?**
-
+### "Permission denied" errors
 ```bash
-source .dojo_config.sh
+# Make scripts executable
+chmod +x setup_dojo.sh baseline_capture.sh
+
+# Check SSH key permissions
+chmod 600 ~/.ssh/dojo_admin
 ```
 
-**Missing tools?**
-
+### "curl: command not found"
 ```bash
-which nmap nikto curl openssl
+# Install missing tools
+sudo apt install curl openssl nmap nikto netcat
+```
+
+### Nmap scans fail
+```bash
+# Nmap requires sudo
+sudo nmap -sV -p 443 10.0.10.20
+
+# Or run entire baseline with sudo context
+sudo ./baseline_capture.sh baseline
+```
+
+### Self-signed certificate warnings
+```bash
+# Expected behavior for lab testing
+# curl uses -k flag to accept self-signed certs
+# This is defined in DOJO_CURL_OPTS
 ```
 
 ---
 
+## 📁 Directory Structure
+
+After setup completion:
+
+```
+~/cyber_dojo/
+├── scripts/           # Automation scripts
+├── baselines/         # Archived evidence (timestamped)
+│   └── nginx/
+├── captures/          # Categorized scan results
+│   ├── curl/
+│   ├── tls/
+│   └── nmap/
+├── logs/              # Runtime logs
+├── daily_diff/        # Diff analysis reports
+└── sessions/          # Session metadata
+```
+
+---
+
+## 📚 Next Steps
+
+1. **Run baseline capture** - Establish BEFORE state
+2. **Harden target** - Implement HTTPS and security headers
+3. **Run second capture** - Establish AFTER state
+4. **Compare evidence** - Validate security improvements
+5. **(Coming Soon)** Diff Report Professor - AI-powered analysis
+
+---
+
+## 🧠 Philosophy
+
+> **Capture first.**  
+> **Understand second.**  
+> **Automate third.**  
+> **Teach last.**
+
+These scripts form the **foundation** for AI-powered Purple Team coaching agents.
+
+---
+
+## 🙋 Getting Help
+
+**Found a bug?** Open an issue on GitHub  
+**Have a question?** Check existing documentation  
+**Want to contribute?** This is a personal training project, but feedback is welcome
+
+---
+
+**Train hard. Build skills. Stay curious.** 🥋🔥

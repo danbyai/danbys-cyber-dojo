@@ -1,102 +1,229 @@
-# ============================================
-# DANBY'S CYBER DOJO - SECURITY GITIGNORE
-# NO SECRETS, NO LOGS, NO SENSITIVE DATA
-# ============================================
+# ========================================
+# DANBY'S CYBER DOJO - GITIGNORE
+# ========================================
+# Protects sensitive data from being committed
 
-# === PYTHON ===
+# ========================================
+# CONFIGURATION (NEVER COMMIT)
+# ========================================
+# These contain IPs, usernames, paths
+.dojo_config.sh
+**/dojo_config.sh
+**/.dojo_config.sh
+~/.dojo_config.sh
+dojo_config_local.sh
+config.local.sh
+
+# YAML configs with sensitive data
+dojo_config.yaml
+**/dojo_config.yaml
+
+# ========================================
+# SCAN OUTPUTS & EVIDENCE
+# ========================================
+# Baseline captures (may contain IPs)
+baseline_*.txt
+hardened_*.txt
+**/baseline_*.txt
+**/hardened_*.txt
+
+# All timestamped captures
+**/*_2024*.txt
+**/*_2025*.txt
+**/*_2026*.txt
+**/*_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*.txt
+
+# Nikto outputs
+**/*nikto*.txt
+**/*nikto*.html
+
+# Nmap outputs
+**/*nmap*.txt
+**/*nmap*.xml
+**/*nmap*.gnmap
+
+# ========================================
+# LOGS & SESSION DATA
+# ========================================
+# All logs
+logs/
+**/logs/
+*.log
+**/*.log
+
+# Session transcripts (chat histories)
+sessions/
+**/sessions/
+session_*.json
+**/session_*.json
+
+# Guardian logs
+**/guardian*.log
+**/guardian*.jsonl
+events.jsonl
+
+# ========================================
+# CAPTURED EVIDENCE DIRECTORIES
+# ========================================
+# These contain all scan results
+baselines/
+captures/
+daily_diff/
+**/baselines/
+**/captures/
+**/daily_diff/
+
+# ========================================
+# SSH KEYS (CRITICAL - NEVER COMMIT)
+# ========================================
+*.pem
+*.key
+**/id_rsa
+**/id_ed25519
+**/*_key
+**/*_rsa
+**/.ssh/
+dojo_admin
+dojo_logsync
+dojo_watch
+guardian_key
+ubuntu_*
+
+# ========================================
+# API KEYS & SECRETS
+# ========================================
+.env
+.env.local
+**/.env
+**/.env.local
+**/api_key.txt
+**/ANTHROPIC_API_KEY
+secrets.txt
+**/secrets.txt
+
+# ========================================
+# PYTHON
+# ========================================
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 venv/
 env/
 ENV/
-*.pyc
-__pycache__/
-*.py[cod]
-*$py.class
-.Python
-*.so
-.installed.cfg
-*.egg
-*.egg-info/
-dist/
-build/
+env.bak/
+venv.bak/
 
-# === SECRETS & CREDENTIALS ===
-.env
-.env.*
-*.key
-*.pem
-*.crt
-*.p12
-*.pfx
-config.json
-secrets.json
-credentials.json
-auth.json
-token
-*.token
-anthropic_api_key.txt
-api_keys.txt
-passwords.txt
-secrets/
-credentials/
-
-# === LOGS ===
-logs/
-*.log
-log/
-*.log.*
-session_*.log
-
-# === CAPTURES & BASELINES ===
-captures/
-baselines/
-screenshots/
-notes/
-daily_diff/*.txt
-daily_diff/*.html
-
-# === LAB DATA ===
-*.pcap
-*.pcapng
-tcpdump_*.txt
-nmap_*.txt
-nikto_*.txt
-curl_*.txt
-
-# === BACKUP FILES ===
-*.bak
-*.backup
-*.old
-*.orig
+# ========================================
+# TEMPORARY FILES
+# ========================================
+*.tmp
+*.temp
+**/tmp/
+**/temp/
+.DS_Store
+Thumbs.db
 *~
 *.swp
 *.swo
+*.bak
+*.backup
 
-# === OS FILES ===
-.DS_Store
-Thumbs.db
-desktop.ini
+# ========================================
+# DIFF REPORTS (MAY CONTAIN SENSITIVE DATA)
+# ========================================
+diff_report_*.md
+**/diff_report_*.md
+daily_diff_*.txt
+**/daily_diff_*.txt
 
-# === IDE FILES ===
-.vscode/
-.idea/
+# ========================================
+# SCREENSHOTS (MAY CONTAIN IPS/PASSWORDS)
+# ========================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+screenshots/
+**/screenshots/
 
-# === DATABASE FILES ===
-*.db
-*.sqlite
-*.sqlite3
-
-# === COMPRESSED FILES ===
+# ========================================
+# ARCHIVES
+# ========================================
 *.zip
 *.tar
 *.tar.gz
+*.tgz
 *.rar
+*.7z
 
-# === TEMPORARY FILES ===
-tmp/
-temp/
-*.tmp
-*.cache
+# ========================================
+# WORKING DIRECTORIES (SESSION-SPECIFIC)
+# ========================================
+test_labs/
+**/test_labs/
+cyber_dojo/
+**/cyber_dojo/
+scratch/
+**/scratch/
 
-# ============================================
-# END OF SECURITY GITIGNORE
-# ============================================
+# ========================================
+# PERSONAL NOTES
+# ========================================
+NOTES.md
+TODO.md
+PERSONAL.md
+**/NOTES.md
+**/TODO.md
+
+# ========================================
+# IDE & EDITOR
+# ========================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ========================================
+# EXCEPTIONS (DO COMMIT THESE)
+# ========================================
+# Public templates
+!dojo_config.sh
+!dojo_config_public.sh
+
+# Documentation
+!README.md
+!SETUP.md
+!LICENSE
+
+# Public scripts
+!setup_dojo.sh
+!baseline_capture.sh
+!labs_watch.sh
+
+# Example/template files (clearly marked)
+!examples/**
+!templates/**
+
+# Requirements
+!requirements.txt

@@ -1,1 +1,12 @@
+# ========================================
+# DANBY'S CYBER DOJO - PYTHON DEPENDENCIES
+# ========================================
+
+# AI/LLM Integration
 anthropic>=0.18.0
+
+# Optional: For future agent development
+# These are commented out until agents are released
+# requests>=2.31.0
+# beautifulsoup4>=4.12.0
+# pyyaml>=6.0

@@ -1,0 +1,287 @@
+# ========================================
+# HTML BLOCKS - PHASE 2.3 REFERENCE
+# ========================================
+# Examples of HTML/CSS patterns for Cyber Dojo Phase 2.3
+# Focus: HTTPS, security headers, external CSS
+
+# ========================================
+# BEFORE - INLINE STYLES (Phase 2.2)
+# ========================================
+
+## Inline CSS (BAD - Nikto will flag this)
+<body>
+    <div style="background: #000; color: #0f0; padding: 20px;">
+        <h1 style="color: #0f0; font-size: 2em;">Cyber Dojo</h1>
+        <p style="margin: 10px 0;">Inline styles detected!</p>
+    </div>
+</body>
+
+## Style tag in HTML (BAD - Should be external)
+<head>
+    <style>
+        body {
+            background: #000;
+            color: #0f0;
+        }
+        h1 {
+            color: #0f0;
+            font-size: 2em;
+        }
+    </style>
+</head>
+
+# ========================================
+# AFTER - EXTERNAL CSS (Phase 2.3)
+# ========================================
+
+## External CSS Link (GOOD - Clean separation)
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Dojo - Phase 2.3</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+## CSS File: /var/www/html/styles/main.css
+body {
+    background: #000;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+}
+
+h1 {
+    color: #0f0;
+    font-size: 2em;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+# ========================================
+# NGINX CONFIGURATION - SECURITY HEADERS
+# ========================================
+
+## HTTP Server (Port 80) - REDIRECT ONLY
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    server_name _;
+    
+    # Redirect all HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+## HTTPS Server (Port 443) - PRIMARY SERVICE
+server {
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+    
+    server_name _;
+    
+    # SSL Certificate Configuration
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+    ssl_dhparam /etc/ssl/certs/dhparam.pem;
+    
+    # Modern TLS Configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    
+    # HSTS - Force HTTPS for 1 year
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+    
+    # Document Root
+    root /var/www/html;
+    index index.html index.htm;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+
+# ========================================
+# SECURITY HEADER EXPLANATIONS
+# ========================================
+
+## HSTS (HTTP Strict Transport Security)
+# Forces browsers to ONLY use HTTPS for this domain
+# max-age=31536000 = 1 year in seconds
+# includeSubDomains = Also apply to all subdomains
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+## X-Frame-Options
+# Prevents clickjacking attacks
+# SAMEORIGIN = Can only be framed by same origin
+add_header X-Frame-Options "SAMEORIGIN" always;
+
+## X-Content-Type-Options
+# Prevents MIME-sniffing attacks
+# nosniff = Browser must respect Content-Type header
+add_header X-Content-Type-Options "nosniff" always;
+
+## X-XSS-Protection
+# Legacy XSS filter (modern browsers use CSP)
+# 1; mode=block = Enable XSS filter and block page
+add_header X-XSS-Protection "1; mode=block" always;
+
+## Content-Security-Policy (CSP)
+# Controls which resources can be loaded
+# default-src 'self' = Only load from same origin by default
+# 'unsafe-inline' = Allow inline scripts/styles (less secure but sometimes needed)
+add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+## Referrer-Policy
+# Controls how much referrer info is sent
+# no-referrer-when-downgrade = Send full URL unless HTTPS → HTTP
+add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+# ========================================
+# HTML META TAGS - ADDITIONAL SECURITY
+# ========================================
+
+## Viewport (Mobile Responsive)
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+## Charset (UTF-8 Encoding)
+<meta charset="UTF-8">
+
+## CSP in Meta Tag (Alternative to Header)
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+
+## X-UA-Compatible (IE Compatibility)
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+# ========================================
+# CURL TESTING COMMANDS
+# ========================================
+
+## Test HTTP → HTTPS Redirect
+curl -I http://10.0.10.20/
+# Expected: HTTP/1.1 301 Moved Permanently
+# Expected: Location: https://10.0.10.20/
+
+## Test HTTPS Headers
+curl -Ik https://10.0.10.20/
+# Expected: HTTP/2 200
+# Expected: strict-transport-security: max-age=31536000; includeSubDomains
+# Expected: x-frame-options: SAMEORIGIN
+# Expected: x-content-type-options: nosniff
+
+## Test External CSS
+curl -Ik https://10.0.10.20/styles/main.css
+# Expected: HTTP/2 200
+# Expected: content-type: text/css
+
+# ========================================
+# NIKTO SCAN EXPECTATIONS
+# ========================================
+
+## Phase 2.2 (HTTP Only) - VULNERABLE
++ Server: nginx/1.18.0 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-Content-Type-Options header is not set.
++ No 'Strict-Transport-Security' header is defined.
++ Inline styles detected (not using external CSS)
+
+## Phase 2.3 (HTTPS) - HARDENED
++ Server: nginx/1.18.0 (Ubuntu)
++ The site uses SSL/TLS - HTTPS detected
++ HTTP Strict Transport Security (HSTS) is enabled
++ X-Frame-Options: SAMEORIGIN detected
++ X-Content-Type-Options: nosniff detected
++ External CSS file detected: /styles/main.css
++ No inline styles found
+
+# ========================================
+# FILE STRUCTURE
+# ========================================
+
+/var/www/html/
+├── index.html              # Main HTML (no inline styles)
+└── styles/
+    └── main.css           # External CSS file
+
+/etc/nginx/
+└── sites-available/
+    └── default            # nginx config (HTTP + HTTPS)
+
+/etc/ssl/
+├── certs/
+│   ├── nginx-selfsigned.crt   # Self-signed certificate
+│   └── dhparam.pem            # Diffie-Hellman parameters
+└── private/
+    └── nginx-selfsigned.key   # Private key
+
+# ========================================
+# PHASE 2.3 COMPLETION CHECKLIST
+# ========================================
+
+✅ HTTP server redirects to HTTPS (301)
+✅ HTTPS server responds on port 443
+✅ Self-signed certificate installed
+✅ TLS 1.2/1.3 protocols enabled
+✅ Strong cipher suites configured
+✅ HSTS header present (max-age=31536000)
+✅ X-Frame-Options: SAMEORIGIN
+✅ X-Content-Type-Options: nosniff
+✅ X-XSS-Protection enabled
+✅ Content-Security-Policy configured
+✅ External CSS file (no inline styles)
+✅ Nikto scan shows improvements
+✅ Baseline captured before/after
+✅ Differential report shows changes
+
+# ========================================
+# COMMON MISTAKES TO AVOID
+# ========================================
+
+❌ Forgetting to restart nginx after config changes
+   Fix: sudo systemctl restart nginx
+
+❌ Self-signed cert not trusted by browser
+   Expected: Browser will show warning (normal for self-signed)
+   Fix: Add exception in browser or use Let's Encrypt for production
+
+❌ CSS file returns 404
+   Fix: Check file exists at /var/www/html/styles/main.css
+   Fix: Check nginx root is /var/www/html
+
+❌ HSTS header not showing in curl
+   Fix: Make sure 'always' flag is used in nginx config
+   Fix: Test with HTTPS not HTTP
+
+❌ Nikto still shows inline styles
+   Fix: Remove ALL style="" attributes from HTML
+   Fix: Remove <style> tags from HTML
+   Fix: Move all CSS to external file
+
+# ========================================
+# DIFF REPORT PROFESSOR QUERIES
+# ========================================
+
+## Good Questions to Ask:
+- "Explain HSTS"
+- "What changed with TLS?"
+- "Why separate CSS?"
+- "Show me the delta"
+- "What's the security improvement?"
+- "Compare HTTP vs HTTPS findings"
+
+## Teaching Points:
+- HTTP port 80 findings = INFORMATIONAL (redirect only)
+- HTTPS port 443 findings = AUTHORITATIVE (primary service)
+- HSTS prevents downgrade attacks
+- External CSS improves maintainability and security
+- Self-signed certs are fine for lab/testing
+- Nikto delta shows before/after hardening
+
+# ========================================
+# END OF HTML_BLOCKS.TXT
+# ========================================
